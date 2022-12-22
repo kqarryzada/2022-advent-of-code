@@ -17,7 +17,7 @@ private fun getPriority(char: Char): Int {
     return priority
 }
 
-fun main() {
+fun oldMain() {
     var prioritySum = 0L
     File(INPUT_FILE).forEachLine { sack ->
         val firstCompartment = sack.substring(0, sack.length / 2)
