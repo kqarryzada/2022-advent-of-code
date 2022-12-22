@@ -4,7 +4,7 @@ import java.io.File
 
 private const val INPUT_FILE = "input.txt"
 
-fun main() {
+fun oldMain() {
     // The total number of lines where one elf's work is completely contained by
     // its peer.
     var totalContained = 0
