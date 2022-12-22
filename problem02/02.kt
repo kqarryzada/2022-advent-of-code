@@ -5,7 +5,7 @@ import java.io.File
 
 private const val INPUT_FILE = "input.txt"
 
-private enum class GameObject {
+enum class GameObject {
     ROCK,
     PAPER,
     SCISSORS,
@@ -59,7 +59,7 @@ fun determineWinner(opponentActionChar: Char, playerActionChar: Char): Int {
     return score
 }
 
-fun main() {
+fun part1() {
     var totalScore = 0
     File(INPUT_FILE).forEachLine { line ->
         val gameRound = line.split(" ").map { it.first() }
