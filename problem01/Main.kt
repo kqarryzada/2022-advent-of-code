@@ -4,14 +4,30 @@ import java.io.File
 
 private const val INPUT_FILE = "input.txt"
 
-private var max = 0L
+// A list of the three largest values computed. The 0th index contains the
+// largest value.
+private var max = mutableListOf<Long>(0, 0, 0)
 private var current = 0L
 
 /**
- * Updates the maximum value if applicable, and clears the 'current' counter.
+ * Updates the maximum values based on the new data. This method always clears
+ * the 'current' counter.
  */
 fun update() {
-    max = if (current > max) current else max
+    if (current > max[0]) {
+        max[2] = max[1]
+        max[1] = max[0]
+        max[0] = current
+    }
+    else if (current > max[1]) {
+        max[2] = max[1]
+        max[1] = current
+    }
+    else if (current > max[2]) {
+        max[2] = current
+    }
+
+    // Clear the counter for the next iteration.
     current = 0
 }
 
@@ -28,5 +44,6 @@ fun main() {
     // Check the sum of the final group of numbers.
     update()
 
-    println("The maximum sum was '$max'.")
+    println("The three highest totals were '$max'.")
+    println("The sum was '${max.sum()}'.")
 }
