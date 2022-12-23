@@ -80,13 +80,17 @@ fun main() {
 
         if (crates[sourceStack].size < amount) { throw RuntimeException("Not enough elements to move.") }
 
+        // Move the crates from the source stack to the target stack. To preserve the order, first
+        // place the contents to a temporary stack.
+        val tempStack = Stack<Char>()
         for (i in 1..amount) {
-            // Move the crate from the source stack to the target stack.
             val topCrate = crates[sourceStack].pop()
-            crates[targetStack].push(topCrate)
+            tempStack.push(topCrate)
+        }
+        for(i in 1..amount) {
+            crates[targetStack].push(tempStack.pop())
         }
     }
 
     printSolution()
 }
-
