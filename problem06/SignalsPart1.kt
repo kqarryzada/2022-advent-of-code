@@ -4,7 +4,7 @@ import java.io.File
 
 private const val INPUT_FILE = "input.txt"
 
-fun main() {
+fun oldMain() {
     // The file's contents are stored on a single line.
     val input = File(INPUT_FILE).readLines()[0]
 
