@@ -1,11 +1,19 @@
 package problem07
 
+import utils.shouldRunPart1
 import java.io.File
 import java.util.Stack
 
 private const val INPUT_FILE = "input.txt"
 
+// The threshold for determining whether a directory should be included in the
+// output sum.
 private const val THRESHOLD_BYTES = 100_001L
+
+// The folder that is to be deleted must be at least this many bytes in size.
+private const val FREE_SPACE_REQUIRED = 30_000_000L
+
+private const val TOTAL_FILE_SYSTEM_SIZE = 70_000_000L
 
 // The buffered reader that will allow us to iterate through the bash history
 // given by 'INPUT_FILE'.
@@ -72,10 +80,10 @@ private fun lsAndReturnNextCommand(): String? {
 }
 
 /**
- * This solution is a lazy approach that continues to keep track of directory
- * sizes after they have exceeded the threshold.
+ * Navigates through a bash history file and collects directory size
+ * information, which is stored in `directorySizeData`.
  */
-fun main() {
+private fun analyzeHistory() {
     var line = reader.readLine()
 
     while (line != null) {
@@ -89,10 +97,25 @@ fun main() {
         else { throw RuntimeException("Invalid command detected: '$line'") }
     }
     reader.close()
+}
 
-    var sumUnderThreshold = 0L
-    directorySizeData.filter { it.value < THRESHOLD_BYTES }.forEach { sumUnderThreshold += it.value }
-    // println("Debug: The map contains: $directorySizeData")
+fun main(args: Array<String>) {
+    val part1 = shouldRunPart1(args)
+    analyzeHistory()
 
-    println("The sum of directories under the the threshold ($THRESHOLD_BYTES) is $sumUnderThreshold bytes.")
+    if (part1) {
+        var sumUnderThreshold = 0L
+        directorySizeData.filter { it.value < THRESHOLD_BYTES }.forEach { sumUnderThreshold += it.value }
+        // println("Debug: The map contains: $directorySizeData")
+
+        println("The sum of directories under the the threshold ($THRESHOLD_BYTES) is $sumUnderThreshold bytes.")
+    }
+    else {
+        // Find the amount of existing data we need to free.
+        val rootSize = directorySizeData["/"] ?: throw RuntimeException()
+        val diskSpaceNeeded = FREE_SPACE_REQUIRED - (70000000 - rootSize)
+        val smallestCandidateDirectory = directorySizeData.values.filter { it > diskSpaceNeeded }.min()
+
+        println("The best candidate directory has a size of $smallestCandidateDirectory bytes.")
+    }
 }
