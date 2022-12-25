@@ -1,2 +1,6 @@
+# IntelliJ files
 .idea/
+out/
+
+# Makefile output files
 **/*.jar
