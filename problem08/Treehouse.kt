@@ -2,6 +2,7 @@ package problem08
 
 import java.io.File
 import problem08.Visibility.*
+import utils.shouldRunPart1
 import java.util.*
 
 private const val INPUT_FILE = "input.txt"
@@ -11,6 +12,10 @@ private val heightMatrix = mutableListOf<List<Int>>()
 
 // A matrix denoting whether trees in the height matrix are "visible" or not.
 private val visibleMatrix = mutableListOf<MutableList<Visibility>>()
+
+// A matrix consisting of the "scenic score" of each tree in the height matrix.
+private val scenicMatrix = mutableListOf<MutableList<Long>>()
+
 
 // Indicates the number of elements in a row or column of the visibility matrix
 // and the height matrix.
@@ -36,7 +41,8 @@ fun printMatrix() {
 }
 
 /**
- * Stores the numerical values of `INPUT_FILE` into matrix form.
+ * Stores the numerical values of `INPUT_FILE` into matrix form. This method
+ * initializes all of the matrices.
  */
 private fun parseMatrixFromFile() {
     // Before iterating, grab the first line to evaluate the number of elements
@@ -54,6 +60,7 @@ private fun parseMatrixFromFile() {
         heightMatrix.add(list)
 
         visibleMatrix.add(MutableList(matrixLength) { UNKNOWN })
+        scenicMatrix.add(MutableList(matrixLength) { -1 })
     }
 
     // Initialize the visibility matrix. All trees on the edges of the graph are
@@ -64,8 +71,21 @@ private fun parseMatrixFromFile() {
         row[0] = VISIBLE
         row[row.lastIndex] = VISIBLE
     }
+
+    // Initialize the scenic matrix. All edge trees will have a score of 0.
+    scenicMatrix[0] = MutableList(matrixLength) { 0 }
+    scenicMatrix[scenicMatrix.lastIndex] = MutableList(matrixLength) { 0 }
+    scenicMatrix.forEach { row ->
+        row[0] = 0
+        row[row.lastIndex] = 0
+    }
 }
 
+/**
+ * Populates the contents of `visibleMatrix` with an indication of whether a
+ * tree can be viewed from one of the edges of the grid. See the problem
+ * description for more information.
+ */
 private fun createVisibilityMap() {
     val numberOfColumns = visibleMatrix[0].lastIndex
 
@@ -141,6 +161,75 @@ private fun createVisibilityMap() {
     }
 }
 
+/**
+ * Calculates the scenic product for a list of tree heights. This may refer to
+ * either a row or column in the height matrix.
+ *
+ * This function returns a list of scenic scores for every tree in the provided
+ * height list. This is slightly more efficient than repeatedly invoking this
+ * function for each element in the height list.
+ */
+private fun scenicProduct(heightList: List<Int>): MutableList<Long> {
+    val productList = mutableListOf<Long>()
+
+    // The scenic score of edges is always zero.
+    productList.add(0)
+
+    for (treeIndex in 1 until heightList.lastIndex) {
+        val treeHeight = heightList[treeIndex]
+        var leftScenicScore = 0L
+        var rightScenicScore = 0L
+
+        for (peerIndex in treeIndex - 1 downTo 0) {
+            leftScenicScore++
+            val peerHeight = heightList[peerIndex]
+            if (peerHeight >= treeHeight) {
+                // A taller tree has been found.
+                break
+            }
+        }
+
+        for (peerIndex in treeIndex + 1..heightList.lastIndex) {
+            rightScenicScore++
+            val peerHeight = heightList[peerIndex]
+            if (peerHeight >= treeHeight) {
+                break
+            }
+        }
+
+        productList.add(leftScenicScore * rightScenicScore)
+    }
+
+    // Add the scenic score of the final edge.
+    productList.add(0)
+    return productList
+}
+
+/**
+ * Calculates a "scenic score" for each tree based on the number of neighboring
+ * trees that it can see in four directions (e.g., north). This function
+ * populates the `scenicMatrix`.
+ */
+private fun calculateScenicScore() {
+    val matrixLength = scenicMatrix[0].size
+
+    for (rowNumber in 1 until matrixLength) {
+        val rowList = heightMatrix[rowNumber]
+        scenicMatrix[rowNumber] = scenicProduct(rowList)
+    }
+
+    for (columnNumber in 1 until matrixLength) {
+        // Convert the column data into a list.
+        val columnList = MutableList(matrixLength) { -1 }
+        for (i in 0 until matrixLength) { columnList[i] = heightMatrix[i][columnNumber] }
+
+        val scenicProductColumn = scenicProduct(columnList)
+        for (i in 0 until matrixLength) {
+            scenicMatrix[i][columnNumber] *= scenicProductColumn[i]
+        }
+    }
+}
+
 fun part1() {
     parseMatrixFromFile()
     createVisibilityMap()
@@ -154,6 +243,19 @@ fun part1() {
     println("There are $visibleCount visible trees.")
 }
 
-fun main() {
-    part1()
+fun part2() {
+    parseMatrixFromFile()
+    calculateScenicScore()
+
+    var maxScenicScore = 0L
+    scenicMatrix.forEach { row ->
+        if (row.max() > maxScenicScore) { maxScenicScore = row.max() }
+    }
+
+    println("The largest scenic score in the grid is $maxScenicScore.")
+}
+
+fun main(args: Array<String>) {
+    if (shouldRunPart1(args)) { part1() }
+    else { part2() }
 }
